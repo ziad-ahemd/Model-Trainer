@@ -330,6 +330,9 @@ def show():
     if 'df' not in st.session_state:
         st.session_state.df = get_df()
     df = st.session_state.df
+    if df.empty:
+        st.warning("Dataset is empty, please upload a proper dataset")
+        return
     st.dataframe(df)
     st.markdown('---')
 

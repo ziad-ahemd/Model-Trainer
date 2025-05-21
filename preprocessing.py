@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from file_upload import *
+import file_upload
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import SimpleImputer, KNNImputer, IterativeImputer
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
@@ -18,13 +19,15 @@ def show():
     if 'df' not in st.session_state:
         st.session_state.df = get_df()
     df = st.session_state.df
-
     # Initialize numeric and non_numeric columns if not present
     if df is not None:
         st.session_state.numeric = [col for col in df.columns.values if pd.api.types.is_numeric_dtype(df[col])]
         st.session_state.non_numeric = [col for col in df.columns.values if not pd.api.types.is_numeric_dtype(df[col])]
     else:
         st.warning("No dataset loaded. Please upload a dataset first.")
+        return
+    if df.empty:
+        st.warning("Dataset is empty, please upload a proper dataset")
         return
     numeric_data = st.session_state.numeric
     categorical_data = st.session_state.non_numeric
@@ -34,16 +37,13 @@ def show():
 
     # Drop column
     st.header('Features filtering')
-    col_to_drop = st.selectbox(label='Choose irrelavint column to drop',options=df.columns)
+    col_to_drop = st.multiselect(label='Choose irrelavint column to drop',options=df.columns)
     drop_column_btn = st.button('Drop column')
     if drop_column_btn:
-        if col_to_drop:
-            df = df.drop(col_to_drop, axis=1)
-            st.session_state.df = df
-            st.dataframe(df)
-            st.success(f'{col_to_drop}, droped successfuly')
-        else:
-            st.error('Please select a valid column')
+        df = df.drop(col_to_drop, axis=1)
+        st.session_state.df = df
+        st.dataframe(df)
+        st.success(f'{col_to_drop}, droped successfuly')
     st.markdown('---')
 
     # Handling duplicates
@@ -87,9 +87,9 @@ def show():
             strategy = st.selectbox('Selecct strategy', ['mean', 'median', 'most_frequent', 'constant'])
             impute_btn = st.button('Fill Missing values')
             if impute_btn:
-                if strategy != 'most_frequent' and categorical_data:
+                if strategy != 'most_frequent' and [col for col in col_to_impute if col in categorical_data] == col_to_impute:
                     st.error('Please select only numeric columns or use most frequent strategy')
-                elif strategy and col_to_impute:
+                elif strategy and len(col_to_impute):
                     simple = SimpleImputer(strategy=strategy)
                     df[col_to_impute] = simple.fit_transform(df[col_to_impute])
                     st.session_state.df = df
@@ -100,7 +100,7 @@ def show():
         elif impute_method == 'KNN':
             impute_btn = st.button('Fill missing values')
             if impute_btn:
-                if [col for col in col_to_impute if col in numeric_data] == col_to_impute: ## only numeric
+                if len(col_to_impute) and [col for col in col_to_impute if col in numeric_data] == col_to_impute: ## only numeric
                     knn = KNNImputer()
                     df[col_to_impute] = knn.fit_transform(df[col_to_impute])
                     st.session_state.df = df
@@ -108,10 +108,10 @@ def show():
                     st.success('Missing values filled successfuly')
                 else:
                     st.error('Please select a valid numeric column')
-        elif impute_method == 'Iterative Impugter' and numeric_data:
+        elif impute_method == 'Iterative Impugter':
             impute_btn = st.button('Fill missing values')
             if impute_btn:
-                if [col for col in col_to_impute if col in numeric_data] == col_to_impute: # only numeric
+                if len(col_to_impute) and [col for col in col_to_impute if col in numeric_data] == col_to_impute: # only numeric
                     iterative = IterativeImputer()
                     df[col_to_impute] = iterative.fit_transform(df[col_to_impute])
                     st.session_state.df = df
@@ -173,7 +173,7 @@ def show():
     ' *note that this number is absloute value, so no negative numbers')
     outlier_btn = st.button('Check outliers')
     if outlier_btn:
-        if check_outlier_col and outlier_method == 'Z-score':
+        if check_outlier_col != None and outlier_method == 'Z-score':
             z_scores = abs(stats.zscore(df[check_outlier_col]))
             outliers_indcies = df[check_outlier_col][z_scores > threshold].index
             if len(outliers_indcies) > 0:
@@ -183,7 +183,7 @@ def show():
                 st.caption('*note the nearest to zero is better')
             else:
                 st.warning('No outliers in this column')
-        elif check_outlier_col and outlier_method == 'IQR':
+        elif check_outlier_col != None and outlier_method == 'IQR':
             Q1 = df[check_outlier_col].quantile(.25)
             Q3 = df[check_outlier_col].quantile(.75)
             IQR = Q3 - Q1
@@ -259,7 +259,7 @@ def show():
     st.markdown('---')
     st.header('Dimentionality reduction')
     reduce_method = st.selectbox('Method', ['PCA', 'RFE'])
-    components = st.number_input('Components', min_value=1, max_value=len(df.columns), value=1)
+    components = st.number_input('Components', min_value=1, max_value=len(numeric_data), value=1)
     st.session_state.component = components
     reduce_btn = st.button('Reduce dimentionality')
     if reduce_btn:
@@ -270,7 +270,9 @@ def show():
             else:
                 transformed = pca.fit_transform(df[numeric_data])
                 transformed = pd.DataFrame(transformed)
+                st.write(transformed)
                 df.drop(numeric_data, axis=1, inplace=True)
+                st.write(df)
                 df = pd.concat([df, transformed], axis=1)
                 st.session_state.df = df
                 st.write(df)
