@@ -10,8 +10,20 @@ def show():
     if 'df' not in st.session_state:
         st.session_state.df = get_df()
     df = st.session_state.df
+<<<<<<< HEAD
     numeric_data = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
     categorical_data = [col for col in df.columns if not pd.api.types.is_numeric_dtype(df[col])]
+=======
+# Initialize numeric and non_numeric columns if not present
+    if df is not None:
+        st.session_state.numeric = [col for col in df.columns.values if pd.api.types.is_numeric_dtype(df[col])]
+        st.session_state.non_numeric = [col for col in df.columns.values if not pd.api.types.is_numeric_dtype(df[col])]
+    else:
+        st.warning("No dataset loaded. Please upload a dataset first.")
+        return
+    numeric_data = st.session_state.numeric
+    categorical_data = st.session_state.non_numeric
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
     st.dataframe(df.head())
 
     def choose_one_column(columns):
@@ -93,9 +105,13 @@ def show():
             st.pyplot(fig)
     elif plot_method == 'Pie plot':
         labels = choose_one_column(categorical_data)
+<<<<<<< HEAD
         # st.write(df[labels].u)
         counts = df[labels].value_counts()
         # st.write(counts)
+=======
+        counts = df[labels].value_counts()
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
         plot_btn = st.button('Plot')
         if plot_btn:
             fig, ax = plt.subplots()

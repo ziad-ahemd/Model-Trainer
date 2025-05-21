@@ -21,8 +21,13 @@ def show():
 
     # Initialize numeric and non_numeric columns if not present
     if df is not None:
+<<<<<<< HEAD
         st.session_state.numeric = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
         st.session_state.non_numeric = [col for col in df.columns if not pd.api.types.is_numeric_dtype(df[col])]
+=======
+        st.session_state.numeric = [col for col in df.columns.values if pd.api.types.is_numeric_dtype(df[col])]
+        st.session_state.non_numeric = [col for col in df.columns.values if not pd.api.types.is_numeric_dtype(df[col])]
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
     else:
         st.warning("No dataset loaded. Please upload a dataset first.")
         return
@@ -30,6 +35,11 @@ def show():
     categorical_data = st.session_state.non_numeric
     st.dataframe(df)
 
+<<<<<<< HEAD
+=======
+    st.markdown('---')
+
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
     # Drop column
     st.header('Features filtering')
     col_to_drop = st.selectbox(label='Choose irrelavint column to drop',options=df.columns)
@@ -80,13 +90,20 @@ def show():
     with col2:
         st.write('Impute missing values')
         col_to_impute = st.multiselect('Choose one or more column to impute', df.columns.values)
+<<<<<<< HEAD
         non_numeric = [col for col in col_to_impute if not pd.api.types.is_numeric_dtype(df[col])]
+=======
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
         impute_method = st.selectbox('Select a method', ['Simple Imputer', 'KNN', 'Iterative Impugter'])
         if impute_method == 'Simple Imputer':
             strategy = st.selectbox('Selecct strategy', ['mean', 'median', 'most_frequent', 'constant'])
             impute_btn = st.button('Fill Missing values')
             if impute_btn:
+<<<<<<< HEAD
                 if strategy != 'most_frequent' and non_numeric:
+=======
+                if strategy != 'most_frequent' and categorical_data:
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
                     st.error('Please select only numeric columns or use most frequent strategy')
                 elif strategy and col_to_impute:
                     simple = SimpleImputer(strategy=strategy)
@@ -99,25 +116,41 @@ def show():
         elif impute_method == 'KNN':
             impute_btn = st.button('Fill missing values')
             if impute_btn:
+<<<<<<< HEAD
                 if col_to_impute in non_numeric:
+=======
+                if [col for col in col_to_impute if col in numeric_data] == col_to_impute: ## only numeric
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
                     knn = KNNImputer()
                     df[col_to_impute] = knn.fit_transform(df[col_to_impute])
                     st.session_state.df = df
                     st.write(df.isna().sum())
                     st.success('Missing values filled successfuly')
                 else:
+<<<<<<< HEAD
                     st.error('Please select a valid categorical column')
         elif impute_method == 'Iterative Impugter' and not non_numeric:
             impute_btn = st.button('Fill missing values')
             if impute_btn:
                 if col_to_impute in non_numeric:
+=======
+                    st.error('Please select a valid numeric column')
+        elif impute_method == 'Iterative Impugter' and numeric_data:
+            impute_btn = st.button('Fill missing values')
+            if impute_btn:
+                if [col for col in col_to_impute if col in numeric_data] == col_to_impute: # only numeric
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
                     iterative = IterativeImputer()
                     df[col_to_impute] = iterative.fit_transform(df[col_to_impute])
                     st.session_state.df = df
                     st.write(df.isna().sum())
                     st.success('Missing values filled successfuly')
                 else:
+<<<<<<< HEAD
                     st.error('Please select a valid categorical column')
+=======
+                    st.error('Please select a valid numeric column')
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
     st.markdown('---')
     st.header('Encoding')
     col_to_encode = st.selectbox('Select column to encode it', categorical_data)
@@ -211,8 +244,13 @@ def show():
                             placeholder='From', key=0)
             st.session_state.from_n = from_n
         with col2:
+<<<<<<< HEAD
             to_n = st.number_input('From', df[check_outlier_col].min(), df[check_outlier_col].max(), value=df[check_outlier_col].max(),
                             placeholder='From')
+=======
+            to_n = st.number_input('To', df[check_outlier_col].min(), df[check_outlier_col].max(), value=df[check_outlier_col].max(),
+                            placeholder='To')
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
             st.session_state.to_n = to_n
     fix_outlier_btn = st.button('Fix outliers')
     if fix_outlier_btn:
@@ -284,8 +322,11 @@ def show():
             st.warning('Future development')
         else:
             st.error('Please select a method')
+<<<<<<< HEAD
     st.markdown('---')
     st.header('Split data')
+=======
+>>>>>>> a7aed5ab2ddd9770497f1227eb9b52b4f9bfece1
 
 
 
